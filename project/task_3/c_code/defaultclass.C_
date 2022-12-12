@@ -1,0 +1,119 @@
+#define defaultclass_cxx
+#include "defaultclass.h"
+#include <TH2.h>
+#include <TStyle.h>
+#include <TCanvas.h>
+#include <iostream>
+#include <iomanip>
+#include <TChain.h>
+#include <TProfile.h>
+
+void defaultclass:: Loop()
+{
+
+
+   if (fChain == 0) return;
+
+   Long64_t nentries = fChain -> GetEntriesFast();
+
+   TFile output("out.root", "recreate");
+
+   Long64_t nbytes = 0, nb = 0;
+   
+   //Counters for counting tracks
+   Int_t count_track, count_pion, count_proton;
+   //Indices for storing values
+   Int_t index_proton, index_pion;
+
+   Int_t bins = 100;
+   Int_t min_momentum = 0, max_momentum = 2e3;
+
+   //Hists for part 1: pi+ candidate
+
+   TH1F *h_1111 = new TH1F("h_1111", "pi+ candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1112 = new TH1F("h_1112", "pi+ candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1113 = new TH1F("h_1113", "pi+ candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1114 = new TH1F("h_1114", "pi+ candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1115 = new TH1F("h_1115", "pi+ candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1116 = new TH1F("h_1116", "pi+ candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1117 = new TH1F("h_1117", "pi+ candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1118 = new TH1F("h_1118", "pi+ candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1121 = new TH1F("h_1121", "pi+ candidate for 0p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1122 = new TH1F("h_1122", "pi+ candidate for 0p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1123 = new TH1F("h_1123", "pi+ candidate for 0p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1124 = new TH1F("h_1124", "pi+ candidate for 0p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1125 = new TH1F("h_1125", "pi+ candidate for 0p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1126 = new TH1F("h_1126", "pi+ candidate for 0p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1127 = new TH1F("h_1127", "pi+ candidate for 0p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1128 = new TH1F("h_1128", "pi+ candidate for 0p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1131 = new TH1F("h_1131", "pi+ candidate for all samples; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1132 = new TH1F("h_1132", "pi+ candidate for all samples; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1133 = new TH1F("h_1133", "pi+ candidate for all samples; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1134 = new TH1F("h_1134", "pi+ candidate for all samples; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1135 = new TH1F("h_1135", "pi+ candidate for all samples; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1136 = new TH1F("h_1136", "pi+ candidate for all samples; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1137 = new TH1F("h_1137", "pi+ candidate for all samples; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_1138 = new TH1F("h_1138", "pi+ candidate for all samples; momentum; entries", bins, min_momentum, max_momentum);
+
+   //Hists for part 1; p candidate
+   TH1F *h_121 = new TH1F("h_121", "proton candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_122 = new TH1F("h_122", "proton candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_123 = new TH1F("h_123", "proton candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_124 = new TH1F("h_124", "proton candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_125 = new TH1F("h_125", "proton candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_126 = new TH1F("h_126", "proton candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_127 = new TH1F("h_127", "proton candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+   TH1F *h_128 = new TH1F("h_128", "proton candidate for 1p sample; momentum; entries", bins, min_momentum, max_momentum);
+
+
+
+   for (Long64_t jentry = 0; jentry < nentries; jentry++) 
+   {
+
+   	Long64_t ientry = LoadTree(jentry);
+   
+      if (ientry < 0)
+  	 	break;
+   
+      fChain -> GetEntry(jentry);
+
+    	for (Int_t particle = 0; particle < n_obj; particle++)
+      	{
+      		count_pion = 0; count_proton = 0; index_pion = 0; index_proton = 0;
+      		count_track = 0;
+
+      		if (particle == obj_maintrack_index)	continue;
+      		if (!(obj_tpc_nnodes[particle] > 17))	continue;
+         	if (!(obj_posstart[particle][0] > -874.51 && obj_posstart[particle][0] < 874.51))	continue;
+         	if (!(obj_posstart[particle][1] > -819.51 && obj_posstart[particle][1] < 929.51))	continue;
+         	if (!(obj_posstart[particle][2] > 136.875 && obj_posstart[particle][2] < 446.955))	continue;
+
+         	count_track++
+
+         	if (!(obj_tomudist[particle] < 50))	continue;
+         	if (!(obj_tpc_q[particle] == 1))	continue;
+         	if (obj_tpc_elpidpull[i] > -2 && obj_tpc_elpidpull[i] < 2) continue;
+         	if ((obj_tpc_pipidpull[i] > -1 && obj_tpc_pipidpull[i] < 1.5) && !(obj_tpc_prpidpull[i] > -2 && obj_tpc_prpidpull[i] < 3)) {
+            	count_pion++;
+            	index_pion = i;
+         }
+      	}
+    }
+output.Write();
+output.Close();
+}
+
+int main(int argc, char** argv)
+{
+   //std:: cout << "Output: " << argv[1] << "\n";
+
+   TChain *chain = new TChain("default");
+
+   //std::cout << "Input: \n" << "\t" << argv[1] << "\n";
+   chain -> Add(argv[1]);
+   
+   defaultclass t(chain);
+   t.Loop();
+   
+   std::cout << "[ DONE ]\n\n";
+}

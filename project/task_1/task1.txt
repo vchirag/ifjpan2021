@@ -1,0 +1,32 @@
+On the fwe02.ifj.edu.pl computer, in the directory /home/people/batkiewicz/t2k/data/ppss2021
+there are MC data you should use:
+
+mc_small.root - small sample of MC data for tests with interactions only inside the ND280 detector
+magnet.root - big sample of MC data with interactions only inside the ND280 detector
+sand.root - sample of MC data with interactions *outside of* the ND280 detector, i.e. in surrounding walls/ground/sand ...
+mc_big.root - big sample of full MC data with interactions both inside and outside of the ND280 detector (should be more or less the same as real data)
+
+
+You can test the drawing program first on mc_small.root and then make a plots on bigger statistics from mc_big.root.
+
+Task 1:
+===========================================
+
+Warning: for below tracks make sure they have part in TPC (obj_tpc_nnodes > 0)
+1. Draw the distribution of obj_tpc_mupidpull for muons, antimuons, charged pions (pi+ and pi- separately), electrons, positrons, protons and other particles (all other particles together)
+2. Draw the distribution of obj_tpc_elpidpull for muons, antimuons, charged pions (pi+ and pi- separately), electrons, positrons, protons and other particles (all other particles together)
+3. Draw the distribution of obj_tpc_prpidpull for muons, antimuons, charged pions (pi+ and pi- separately), electrons, positrons, protons and other particles (all other particles together)
+4. Draw the distribution of obj_tpc_pipidpull for muons, antimuons, charged pions (pi+ and pi- separately), electrons, positrons, protons and other particles (all other particles together)
+5. Draw distributions 1-4 for objects with at least 18 hits (obj_tpc_nnodes) (hit is "reconstructed point" in the detector, track and cascade is made of many hits, the longer track and the larger cascade the more hits it contains)
+6. Draw distributions 1-4 for objects with at least 18 hits (obj_tpc_nnodes) for tracks starting inside FGD1 Fiducial Volume (obj_posstart, see below) separately for tracks reconstructed as positive and as negative tracks (obj_tpc_q)
+
+===========================================
+
+FGD1 Fiducial Volume definition:
+------------------------------------
+coordinate  |   min     |  max
+------------------------------------
+    X       | -874.51   | 874.51
+    Y       | -819.51   | 929.51
+    Z       |  136.875  | 446.955
+------------------------------------

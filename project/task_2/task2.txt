@@ -1,0 +1,50 @@
+On the fwe02.ifj.edu.pl computer, in the directory /home/people/batkiewicz/t2k/data/ppss2021
+there are MC data you should use:
+
+mc_small.root - small sample of MC data for tests with interactions only inside the ND280 detector
+magnet.root - big sample of MC data with interactions only inside the ND280 detector
+sand.root - sample of MC data with interactions *outside of* the ND280 detector, i.e. in surrounding walls/ground/sand ...
+mc_big.root - big sample of full MC data with interactions both inside and outside of the ND280 detector (should be more or less the same as real data)
+
+
+You can test the drawing program first on mc_small.root and then make a plots on bigger statistics from mc_big.root.
+
+Task 2:
+===========================================
+
+Warning1: for all tracks make sure they have part in the studied sub-detector (obj_tpc_nnodes > 0 for the part in TPC, obj_ecal_nhits for the part in ECal, obj_fgd_nhits for the part in FGD)
+
+The goal of this task would be select numuCC1pi+ interactions (interactions of muon neutrinos in which 1mu- and 1pi+ and 0 or 1 proton is produced) with the interaction vertex in FGD1 Fiducial Volume (FV).
+
+0. The root files contain "preselected" sample, i.e. sample of interaction in which mu- candidate was selected (selmu_.. track).
+   selmu track properties are also saved in obj_.. array in obj_...[obj_maintrack_index].
+
+Warning2: While making below plots, skip muon candidate (obj_...[obj_maintrack_index]) track!
+
+1. Draw distance to muon candidate (obj_tomudist) for tracks from the same neutrino interaction as muon candidate (obj_issamevtx==1) and for tracks from other vertices (obj_issamevtx==0). Distance is in mm.
+   Can you see a peak near 0?
+2. Draw distance to muon candidate (obj_tomudist) for tracks from the same neutrino interaction as muon candidate (obj_issamevtx==1) for charged pions, protons, electrons, positrons, neutrons and other particles.
+   Do they all start near the muon track start position?
+   What would be a good cut on obj_tomudist to choose charged pion and proton tracks from the same vertex?
+3. Draw (on separate plots) in range [-5;5] distributions of obj_tpc_elpidpull, obj_tpc_prpidpull, obj_tpc_pipidpull
+   for muons, antimuons, charged pions (pi+ and pi- separately), electrons, positrons, protons and other particles (all other particles together)
+   for objects with at least 18 hits in TPC (obj_tpc_nnodes) and start position (obj_posstart) in FGD1 FV and close to selmu track (obj_tomudist cut)
+   separately for tracks reconstructed as positive and as negative tracks (obj_tpc_q==1 and obj_tpc_q==-1).
+   What would be a good cut to select pi+ track and proton track
+4. If there is part in ECal, draw obj_ecal_mipem for chosen pi+ and proton track
+5. Draw the momentum (obj_mom) of chosen pi+ and proton track
+6. Using cuts on reconstructed information (don't cut on obj_pdg nor obj_issamevtx) choose interactions with one pi+ candidate and zero or one proton candidate with part in TPC from the same vertex as muon candidate
+6a. For such events draw momentum (obj_mom) of pi+ candidate and proton candidate for different true particle types (obj_pdg): true mu-,mu+,pi-,pi+,e-,e+,p,other
+6b. For such events draw muon candidate momentum (selmu_mom) and neutrino energy (nu_trueE)  for different primary neutrino reaction types (reaction) and different type of reactions defined based on final state particles (topology) - see default_tree_description.h file for description of reaction and topology variables.
+
+
+===========================================
+
+FGD1 Fiducial Volume definition:
+------------------------------------
+coordinate  |   min     |  max
+------------------------------------
+    X       | -874.51   | 874.51
+    Y       | -819.51   | 929.51
+    Z       |  136.875  | 446.955
+------------------------------------

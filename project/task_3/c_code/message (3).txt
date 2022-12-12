@@ -1,0 +1,480 @@
+   for (Long64_t jentry=0; jentry<nentries;jentry++) {
+      Long64_t ientry = LoadTree(jentry);
+      if (ientry < 0) break;
+      fChain->GetEntry(jentry); 
+
+      // count variable for all tracks inside FGD1
+      int count = 0;
+      // count variables for selected pion and proton tracks and i variable to save the array index
+      int i_pi = 0, i_pr = 0, count_pi = 0, count_pr = 0;
+      // loop on the number of reconstructed tracks for each event
+      for (int i=0; i<n_obj; i++) {
+         // skipping muon candidate track
+         if (obj_maintrack_index == i) continue;   
+         // inside FGD1 FV cuts
+         if (!(obj_tpc_nnodes[i] > 17)) continue;
+         if (!(obj_posstart[i][0] > -874.51 && obj_posstart[i][0] < 874.51)) continue;
+         if (!(obj_posstart[i][1] > -819.51 && obj_posstart[i][1] < 929.51)) continue;
+         if (!(obj_posstart[i][2] > 136.875 && obj_posstart[i][2] < 446.955)) continue;
+         // counting tracks inside FGD1 FV before distance cut
+         count++;
+         // distance cut to check if track is coming from the same vertice as muon
+         if (!(obj_tomudist[i] < 50)) continue;
+         // just accept positive charged tracks
+         if (obj_tpc_q[i] != 1) continue;
+         // cut to remove positrons and electrons
+         if (obj_tpc_elpidpull[i] > -2 && obj_tpc_elpidpull[i] < 2) continue;
+         // pion+ track selection
+         if ((obj_tpc_pipidpull[i] > -1 && obj_tpc_pipidpull[i] < 1.5) && !(obj_tpc_prpidpull[i] > -2 && obj_tpc_prpidpull[i] < 3)) {
+            count_pi++;
+            i_pi = i;
+         }
+         // proton track selection
+         if ((obj_tpc_prpidpull[i] > -2 && obj_tpc_prpidpull[i] < 3) && !(obj_tpc_pipidpull[i] > -1 && obj_tpc_pipidpull[i] < 1.5)) {
+            count_pr++;
+            i_pr = i; 
+         }
+      }
+      // filling auxiliar histogram for efficiency of CC1pi+ before selecting CC1pi+ (selected or not selected signals)
+      if (topology == 1 && infv == 1) h_nu_trueE.Fill(nu_trueE);
+      // Accept just events with numuCC1pi+ interactions (1 pion+ and 0/1 proton)
+      // check if there are 1 pion+ and 0 or 1 proton and just these 2 tracks inside FGD1 FV 
+      if (!(count_pi == 1 && count_pr < 2 && count < 3)) continue;
+      // 4-momentum of all particles (if proton isnt needed it just wont be used)
+      int i_mu = obj_maintrack_index;
+      TLorentzVector mu_4mom, pi_4mom, pr_4mom;
+      double mass_mu = 105.6583745, mass_pi = 139.57018, mass_pr = 938.27208816; 
+      mu_4mom.SetXYZM(obj_mom[i_mu]*obj_dir[i_mu][0],obj_mom[i_mu]*obj_dir[i_mu][1],obj_mom[i_mu]*obj_dir[i_mu][2],mass_mu);
+      pi_4mom.SetXYZM(obj_mom[i_pi]*obj_dir[i_pi][0],obj_mom[i_pi]*obj_dir[i_pi][1],obj_mom[i_pi]*obj_dir[i_pi][2],mass_pi);
+      pr_4mom.SetXYZM(obj_mom[i_pr]*obj_dir[i_pr][0],obj_mom[i_pr]*obj_dir[i_pr][1],obj_mom[i_pr]*obj_dir[i_pr][2],mass_pr);
+      // sample with 1 proton (1p)
+      if (count_pr == 1) {
+         // comparing pion+ candidate momentum with true particles
+         switch (obj_pdg[i_pi]) {
+         case 13:
+            h_mom_pion_all_real_muon.Fill(obj_mom[i_pi]);
+            h_mom_pion_1p_real_muon.Fill(obj_mom[i_pi]);
+            break;
+         case -13:
+            h_mom_pion_all_real_antimuon.Fill(obj_mom[i_pi]);
+            h_mom_pion_1p_real_antimuon.Fill(obj_mom[i_pi]);
+            break;
+         case 211:
+            h_mom_pion_all_real_pion_pos.Fill(obj_mom[i_pi]);
+            h_mom_pion_1p_real_pion_pos.Fill(obj_mom[i_pi]);
+            break;
+         case -211:
+            h_mom_pion_all_real_pion_neg.Fill(obj_mom[i_pi]);
+            h_mom_pion_1p_real_pion_neg.Fill(obj_mom[i_pi]);
+            break;
+         case 11:
+            h_mom_pion_all_real_electron.Fill(obj_mom[i_pi]);
+            h_mom_pion_1p_real_electron.Fill(obj_mom[i_pi]);
+            break;
+         case -11:
+            h_mom_pion_all_real_positron.Fill(obj_mom[i_pi]);
+            h_mom_pion_1p_real_positron.Fill(obj_mom[i_pi]);
+            break;
+         case 2212:
+            h_mom_pion_all_real_proton.Fill(obj_mom[i_pi]);
+            h_mom_pion_1p_real_proton.Fill(obj_mom[i_pi]);
+            break;
+         default:
+            h_mom_pion_all_real_others.Fill(obj_mom[i_pi]);
+            h_mom_pion_1p_real_others.Fill(obj_mom[i_pi]);
+            break;
+         } 
+         // comparing proton candidade momentum with true particles
+         switch (obj_pdg[i_pr]) {
+         case 13:
+            h_mom_proton_1p_real_muon.Fill(obj_mom[i_pr]);
+            break;
+         case -13:
+            h_mom_proton_1p_real_antimuon.Fill(obj_mom[i_pr]);
+            break;
+         case 211:
+            h_mom_proton_1p_real_pion_pos.Fill(obj_mom[i_pr]);
+            break;
+         case -211:
+            h_mom_proton_1p_real_pion_neg.Fill(obj_mom[i_pr]);
+            break;
+         case 11:
+            h_mom_proton_1p_real_electron.Fill(obj_mom[i_pr]);
+            break;
+         case -11:
+            h_mom_proton_1p_real_positron.Fill(obj_mom[i_pr]);
+            break;
+         case 2212:
+            h_mom_proton_1p_real_proton.Fill(obj_mom[i_pr]);
+            break;
+         default:
+            h_mom_proton_1p_real_others.Fill(obj_mom[i_pr]);
+            break;
+         }    
+         // comparing selmu candidate with true particles
+         switch (obj_pdg[obj_maintrack_index]) {
+         case 13:
+            h_selmu_mom_all_real_muon.Fill(selmu_mom[0]);
+            h_selmu_mom_1p_real_muon.Fill(selmu_mom[0]);
+            break;
+         case -13:
+            h_selmu_mom_all_real_antimuon.Fill(selmu_mom[0]);
+            h_selmu_mom_1p_real_antimuon.Fill(selmu_mom[0]);
+            break;
+         case 211:
+            h_selmu_mom_all_real_pion_pos.Fill(selmu_mom[0]);
+            h_selmu_mom_1p_real_pion_pos.Fill(selmu_mom[0]);
+            break;
+         case -211:
+            h_selmu_mom_all_real_pion_neg.Fill(selmu_mom[0]);
+            h_selmu_mom_1p_real_pion_neg.Fill(selmu_mom[0]);
+            break;
+         case 11:
+            h_selmu_mom_all_real_electron.Fill(selmu_mom[0]);
+            h_selmu_mom_1p_real_electron.Fill(selmu_mom[0]);
+            break;
+         case -11:
+            h_selmu_mom_all_real_positron.Fill(selmu_mom[0]);
+            h_selmu_mom_1p_real_positron.Fill(selmu_mom[0]);
+            break;
+         case 2212:
+            h_selmu_mom_all_real_proton.Fill(selmu_mom[0]);
+            h_selmu_mom_1p_real_proton.Fill(selmu_mom[0]);
+            break;
+         default:
+            h_selmu_mom_all_real_others.Fill(selmu_mom[0]);
+            h_selmu_mom_1p_real_others.Fill(selmu_mom[0]);
+            break;
+         }    
+         // selmu momentum and neutrino energy for different reactions 
+         switch (reaction) {
+         case 0:
+            h_selmu_mom_all_reaction_CCQE.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_CCQE.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_CCQE.Fill(nu_trueE);
+            break;
+         case 9:
+            h_selmu_mom_all_reaction_2p2h.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_2p2h.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_2p2h.Fill(nu_trueE);
+            break;         
+         case 1:
+            h_selmu_mom_all_reaction_RES.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_RES.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_RES.Fill(nu_trueE);
+            break;
+         case 2:
+            h_selmu_mom_all_reaction_DIS.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_DIS.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_DIS.Fill(nu_trueE);
+            break;
+         case 3:
+            h_selmu_mom_all_reaction_COH.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_COH.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_COH.Fill(nu_trueE);
+            break;
+         case 4:
+            h_selmu_mom_all_reaction_NC.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_NC.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_NC.Fill(nu_trueE);
+            break;
+         case 5:
+            h_selmu_mom_all_reaction_CCnumu.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_CCnumu.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_CCnumu.Fill(nu_trueE);
+            break;
+         case 6:
+            h_selmu_mom_all_reaction_CCnue.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_CCnue.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_CCnue.Fill(nu_trueE);
+            break;
+         case 999:
+            h_selmu_mom_all_reaction_other.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_other.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_other.Fill(nu_trueE);
+            break;
+         case 7:
+            h_selmu_mom_all_reaction_outFV.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_outFV.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_outFV.Fill(nu_trueE);
+            break;
+         case -1:
+            h_selmu_mom_all_reaction_notruth.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_notruth.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_notruth.Fill(nu_trueE);
+            break;
+         case 777:
+            h_selmu_mom_all_reaction_sandmu.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_sandmu.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_sandmu.Fill(nu_trueE);
+            break;
+         }
+         // selmu momentum and neutrino energy for different topologys
+         switch (topology) {
+         case 0:
+            h_selmu_mom_all_topology_CC0pi.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_CC0pi.Fill(nu_trueE); 
+            break;
+         case 1:
+            h_selmu_mom_all_topology_CC1pi.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_CC1pi.Fill(nu_trueE);
+            break;
+         case 2:
+            h_selmu_mom_all_topology_CCother.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_CCother.Fill(nu_trueE);
+            break;  
+         case 3:
+            h_selmu_mom_all_topology_BKG.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_BKG.Fill(nu_trueE);
+            break; 
+         case 7:
+            h_selmu_mom_all_topology_outFV.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_outFV.Fill(nu_trueE); 
+            break;
+         case -1:
+            h_selmu_mom_all_topology_notruth.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_notruth.Fill(nu_trueE); 
+            break;
+         case 777:
+            h_selmu_mom_all_topology_sandmu.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_sandmu.Fill(nu_trueE); 
+            break;
+         }
+         // filling auxiliar histograms for calculating purity with respect to momentum      
+         h_selmu_mom_all.Fill(selmu_mom[0]);
+         h_mom_pion_all.Fill(obj_mom[i_pi]);
+         h_mom_proton_1p.Fill(obj_mom[i_pr]);
+         // filling auxiliar histograms for calculating purity with respect to cos theta
+         h_selmu_cos_all.Fill(selmu_costheta[0]);
+         h_cos_pion_all.Fill(obj_dir[i_pi][2]);
+         h_cos_proton_1p.Fill(obj_dir[i_pr][2]);
+         if (obj_pdg[obj_maintrack_index] == 13) h_selmu_cos_all_real_muon.Fill(selmu_costheta[0]);
+         if (obj_pdg[i_pi] == 211) h_cos_pion_all_real_pion_pos.Fill(obj_dir[i_pi][2]);
+         if (obj_pdg[i_pr] == 2212) h_cos_proton_1p_real_proton.Fill(obj_dir[i_pr][2]);
+         // filling auxiliar histograms for calculating purity and efficiency of CC1pi+
+         h_nu_trueE_all_CC1pi_infv.Fill(nu_trueE);
+         if (topology == 1 && infv == 1) h_nu_trueE_all_CC1pi_infv_true.Fill(nu_trueE);
+         // 4-momentums and invariant mass of pion - proton 
+         double inv_mass_pi_pr = (pi_4mom + pr_4mom).M();
+         if (topology == 1 && reaction == 1) h_inv_mass_pion_proton_1p_CC1pi_RES.Fill(inv_mass_pi_pr);
+         if (topology == 1 && reaction != 1) h_inv_mass_pion_proton_1p_CC1pi_noRES.Fill(inv_mass_pi_pr);
+         if (topology != 1) h_inv_mass_pion_proton_1p_noCC1pi.Fill(inv_mass_pi_pr);
+         // recontructed neutrino energy
+         TLorentzVector nu_4mom = mu_4mom + pi_4mom + pr_4mom;
+         double rec_nu_energy = nu_4mom.E() - mass_pr;
+         h_rec_nu_energy_1p.Fill(rec_nu_energy);
+         h_true_vs_rec_nu_energy_1p.Fill(nu_trueE,rec_nu_energy);
+         if (topology == 1) h_true_vs_rec_nu_energy_1p_CC1pi.Fill(nu_trueE,rec_nu_energy);
+         if (topology != 1) h_true_vs_rec_nu_energy_1p_noCC1pi.Fill(nu_trueE,rec_nu_energy);
+         h_true_minus_rec_nu_energy_1p.Fill(nu_trueE-rec_nu_energy);
+         h_true_minus_rec_norm_nu_energy_1p.Fill((nu_trueE-rec_nu_energy)/nu_trueE);
+         // neutrino transverse momentum
+         double pt_nu = nu_4mom.Pt();
+         h_pt_nu_1p.Fill(pt_nu);
+         if (topology == 1) h_pt_nu_1p_CC1pi.Fill(pt_nu);
+         if (topology != 1) h_pt_nu_1p_noCC1pi.Fill(pt_nu);
+      }
+      // sample with 0 protons (0p)
+      if (count_pr == 0) {
+         // comparing pion+ candidate momentum with true particles
+         switch (obj_pdg[i_pi]) {
+         case 13:
+            h_mom_pion_all_real_muon.Fill(obj_mom[i_pi]);
+            h_mom_pion_0p_real_muon.Fill(obj_mom[i_pi]);
+            break;
+         case -13:
+            h_mom_pion_all_real_antimuon.Fill(obj_mom[i_pi]);
+            h_mom_pion_0p_real_antimuon.Fill(obj_mom[i_pi]);
+            break;
+         case 211:
+            h_mom_pion_all_real_pion_pos.Fill(obj_mom[i_pi]);
+            h_mom_pion_0p_real_pion_pos.Fill(obj_mom[i_pi]);
+            break;
+         case -211:
+            h_mom_pion_all_real_pion_neg.Fill(obj_mom[i_pi]);
+            h_mom_pion_0p_real_pion_neg.Fill(obj_mom[i_pi]);
+            break;
+         case 11:
+            h_mom_pion_all_real_electron.Fill(obj_mom[i_pi]);
+            h_mom_pion_0p_real_electron.Fill(obj_mom[i_pi]);
+            break;
+         case -11:
+            h_mom_pion_all_real_positron.Fill(obj_mom[i_pi]);
+            h_mom_pion_0p_real_positron.Fill(obj_mom[i_pi]);
+            break;
+         case 2212:
+            h_mom_pion_all_real_proton.Fill(obj_mom[i_pi]);
+            h_mom_pion_0p_real_proton.Fill(obj_mom[i_pi]);
+            break;
+         default:
+            h_mom_pion_all_real_others.Fill(obj_mom[i_pi]);
+            h_mom_pion_0p_real_others.Fill(obj_mom[i_pi]);
+            break;
+         } 
+         // comparing selmu candidate with true particles
+         switch (obj_pdg[obj_maintrack_index]) {
+         case 13:
+            h_selmu_mom_all_real_muon.Fill(selmu_mom[0]);
+            h_selmu_mom_0p_real_muon.Fill(selmu_mom[0]);
+            break;
+         case -13:
+            h_selmu_mom_all_real_antimuon.Fill(selmu_mom[0]);
+            h_selmu_mom_0p_real_antimuon.Fill(selmu_mom[0]);
+            break;
+         case 211:
+            h_selmu_mom_all_real_pion_pos.Fill(selmu_mom[0]);
+            h_selmu_mom_0p_real_pion_pos.Fill(selmu_mom[0]);
+            break;
+         case -211:
+            h_selmu_mom_all_real_pion_neg.Fill(selmu_mom[0]);
+            h_selmu_mom_0p_real_pion_neg.Fill(selmu_mom[0]);
+            break;
+         case 11:
+            h_selmu_mom_all_real_electron.Fill(selmu_mom[0]);
+            h_selmu_mom_0p_real_electron.Fill(selmu_mom[0]);
+            break;
+         case -11:
+            h_selmu_mom_all_real_positron.Fill(selmu_mom[0]);
+            h_selmu_mom_0p_real_positron.Fill(selmu_mom[0]);
+            break;
+         case 2212:
+            h_selmu_mom_all_real_proton.Fill(selmu_mom[0]);
+            h_selmu_mom_0p_real_proton.Fill(selmu_mom[0]);
+            break;
+         default:
+            h_selmu_mom_all_real_others.Fill(selmu_mom[0]);
+            h_selmu_mom_0p_real_others.Fill(selmu_mom[0]);
+            break;
+         }  
+         // selmu momentum and neutrino energy for different reactions
+         switch (reaction) {
+         case 0:
+            h_selmu_mom_all_reaction_CCQE.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_CCQE.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_CCQE.Fill(nu_trueE);
+            break;
+         case 9:
+            h_selmu_mom_all_reaction_2p2h.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_2p2h.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_2p2h.Fill(nu_trueE);
+            break;         
+         case 1:
+            h_selmu_mom_all_reaction_RES.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_RES.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_RES.Fill(nu_trueE);
+            break;
+         case 2:
+            h_selmu_mom_all_reaction_DIS.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_DIS.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_DIS.Fill(nu_trueE);
+            break;
+         case 3:
+            h_selmu_mom_all_reaction_COH.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_COH.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_COH.Fill(nu_trueE);
+            break;
+         case 4:
+            h_selmu_mom_all_reaction_NC.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_NC.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_NC.Fill(nu_trueE);
+            break;
+         case 5:
+            h_selmu_mom_all_reaction_CCnumu.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_CCnumu.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_CCnumu.Fill(nu_trueE);
+            break;
+         case 6:
+            h_selmu_mom_all_reaction_CCnue.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_CCnue.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_CCnue.Fill(nu_trueE);
+            break;
+         case 999:
+            h_selmu_mom_all_reaction_other.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_other.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_other.Fill(nu_trueE);
+            break;
+         case 7:
+            h_selmu_mom_all_reaction_outFV.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_outFV.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_outFV.Fill(nu_trueE);
+            break;
+         case -1:
+            h_selmu_mom_all_reaction_notruth.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_notruth.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_notruth.Fill(nu_trueE);
+            break;
+         case 777:
+            h_selmu_mom_all_reaction_sandmu.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_reaction_sandmu.Fill(nu_trueE); 
+            if (topology == 1) h_nu_trueE_all_CC1pi_reaction_sandmu.Fill(nu_trueE);
+            break;
+         }
+         // selmu momentum and neutrino energy for different topologys
+         switch (topology) {
+         case 0:
+            h_selmu_mom_all_topology_CC0pi.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_CC0pi.Fill(nu_trueE); 
+            break;
+         case 1:
+            h_selmu_mom_all_topology_CC1pi.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_CC1pi.Fill(nu_trueE);
+            break;
+         case 2:
+            h_selmu_mom_all_topology_CCother.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_CCother.Fill(nu_trueE);
+            break;  
+         case 3:
+            h_selmu_mom_all_topology_BKG.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_BKG.Fill(nu_trueE);
+            break; 
+         case 7:
+            h_selmu_mom_all_topology_outFV.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_outFV.Fill(nu_trueE); 
+            break;
+         case -1:
+            h_selmu_mom_all_topology_notruth.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_notruth.Fill(nu_trueE); 
+            break;
+         case 777:
+            h_selmu_mom_all_topology_sandmu.Fill(selmu_mom[0]);  
+            h_nu_trueE_all_topology_sandmu.Fill(nu_trueE); 
+            break;
+         }
+         // filling auxiliar histograms for calculating purity with respect to momentum        
+         h_selmu_mom_all.Fill(selmu_mom[0]);
+         h_mom_pion_all.Fill(obj_mom[i_pi]);
+         // filling auxiliar histograms for calculating purity with respect to cos theta
+         h_selmu_cos_all.Fill(selmu_costheta[0]);
+         h_cos_pion_all.Fill(obj_dir[i_pi][2]);
+         if (obj_pdg[obj_maintrack_index] == 13) h_selmu_cos_all_real_muon.Fill(selmu_costheta[0]);
+         if (obj_pdg[i_pi] == 211) h_cos_pion_all_real_pion_pos.Fill(obj_dir[i_pi][2]);
+         // filling auxiliar histograms for calculating purity and efficiency of CC1pi+
+         h_nu_trueE_all_CC1pi_infv.Fill(nu_trueE);
+         if (topology == 1 && infv == 1) h_nu_trueE_all_CC1pi_infv_true.Fill(nu_trueE);
+         // reconstructed neutrino energy
+         TLorentzVector nu_4mom = mu_4mom + pi_4mom;
+         double rec_nu_energy = nu_4mom.E();
+         h_rec_nu_energy_0p.Fill(rec_nu_energy);
+         h_true_vs_rec_nu_energy_0p.Fill(nu_trueE,rec_nu_energy);
+         if (topology == 1) h_true_vs_rec_nu_energy_0p_CC1pi.Fill(nu_trueE,rec_nu_energy);
+         if (topology != 1) h_true_vs_rec_nu_energy_0p_noCC1pi.Fill(nu_trueE,rec_nu_energy);
+         h_true_minus_rec_nu_energy_0p.Fill(nu_trueE-rec_nu_energy);
+         h_true_minus_rec_norm_nu_energy_0p.Fill((nu_trueE-rec_nu_energy)/nu_trueE);
+         // neutrino transverse momentum
+         double pt_nu = nu_4mom.Pt();
+         h_pt_nu_0p.Fill(pt_nu);
+         if (topology == 1) h_pt_nu_0p_CC1pi.Fill(pt_nu);
+         if (topology != 1) h_pt_nu_0p_noCC1pi.Fill(pt_nu);
+      }
+   }
+   // purity with respect to momentum
+   h_purity_mom_muon_all.Divide(&h_selmu_mom_all_real_muon,&h_selmu_mom_all);
+   h_purity_mom_pion_all.Divide(&h_mom_pion_all_real_pion_pos,&h_mom_pion_all);
+   h_purity_mom_proton_1p.Divide(&h_mom_proton_1p_real_proton,&h_mom_proton_1p);
+   // purity with respect to cos theta
+   h_purity_cos_muon_all.Divide(&h_selmu_cos_all_real_muon,&h_selmu_cos_all);
+   h_purity_cos_pion_all.Divide(&h_cos_pion_all_real_pion_pos,&h_cos_pion_all);
+   h_purity_cos_proton_1p.Divide(&h_cos_proton_1p_real_proton,&h_cos_proton_1p);
+   // purity and effeciency of CC1pi+ selection
+   h_purity_nu_trueE_CC1pi_all.Divide(&h_nu_trueE_all_CC1pi_infv_true,&h_nu_trueE_all_CC1pi_infv);
+   h_efficiency_nu_trueE_CC1pi_all.Divide(&h_nu_trueE_all_CC1pi_infv_true,&h_nu_trueE);

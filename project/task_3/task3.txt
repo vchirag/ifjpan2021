@@ -1,0 +1,71 @@
+Task 3: efficiency, purity & kinematic distributions
+===========================================
+
+0. The goal of this selection is to choose topology==1: CC-1#pi^{+} 
+   At this point you should have selected numuCC1pi+ candidates with neutrino interaction vertex in FGD1 FV.
+   There should be two "sub-samples" of such events:
+   a) with proton, so that tracks produced in the vertex are: mu- (selmu_...), pi+, proton
+   b) without proton, so that tracks produced in the vertex are: mu- (selmu_...), pi+
+   Prepare below plots for these events.
+
+1. For selected C1pi+ candidates after all cuts: draw momentum (obj_mom) of pi+ candidate (pepare three plots for all selected events, only for subsample a, only for subsample b) and proton candidate (only subsample b) for different true particle types (obj_pdg): true pi+, proton, mu+/-, pi-,e+/-, other
+
+   What is the background? What do you think, why it was not rejected?
+after all cuts: draw muon candidate momentum (selmu_mom[0]) for different true particle types (particle, see default_tree_description.h): true mu-, pi+/-, proton, e+/-, other
+
+2. For selected C1pi+ candidates 
+3. For selected C1pi+ candidates after all cuts: draw muon candidate momentum (selmu_mom) and neutrino energy (nu_trueE) for different reaction (reaction = primary neutrino reaction type) and topologies (topology = reaction type based on particles leaving the nucleus)
+
+4. For selected C1pi+ candidates after all cuts for topology==1 (CC-1#pi^{+}) draw neutrino energy (nu_trueE) for different reaction types
+
+   It is expected that such topology will be produced mainly in RES primary neutrino interaction (resonance pion production). Is this true? What else primary neutrino reaction can produce such a topology?
+
+5. Draw purity of the muon, pi+ and proton selection with respect to they momentum,
+   Purity: e.g. for pi+ draw the ratio between selected true pi+ number to number of all selected pi+ candidates in each momentum bin, etc.
+
+6. Draw purity of the muon, pi+ and proton selection with respect to they cos theta (theta is the angle between track direction and neutrino beam diraction):
+   for muon candidate: selmu_costheta[0], for pi+ and proton candidate obj_dir[particle][2]
+
+5-6: Is there any dependance between purity and particle momentum or cos theta? If yes, what do you think, why is like?
+
+7. Draw purity and efficiency of CC-1#pi^{+} (topology==1) selection for neutrino vertex in FGD1 FV as a function of neutrino energy (nu_trueE)
+   Signal reaction: true CC-1#pi^{+} (topology==1) with neutrino vertex in FGD1 FV (infv==1)
+   Purity: ratio between number of selected signal reactions to number of all selected reactions in each nu_trueE bin
+   Efficiency: ratio between number of *selected* signal reactions to number of all (selected or not) signal reactions in each nu_trueE bin
+
+   Is the purity & efficiency distribution flat or is there any dependence? If yes, what do you think, why is like?
+
+8. For subsample b, draw the invariant mass of the sum of pi+ and proton 4-momentum.
+   Draw this distribution for the following three categories:
+   - topology==1 (CC-1#pi^{+}) && reaction==1 (RES, resonance pion production)
+   - topology==1 (CC-1#pi^{+}) && reaction!=1
+   - topology!=1
+
+   What are the differences between those plots? Why?
+
+9. Try to *reconstruct* neutrino energy separately for subsample a) and b) and compare it with true neutrino energy (nu_trueE):
+
+   If you don't know it from root excercises, below there are hints how to calculate it:
+   reconstructed momentum (mom) value (not a vector) for different tracks is selmu_mom or obj_mom
+   reconsructed direction is selmu_dir or obj_dir
+   reconstructed momentum vector is a vector pararell to the direction but with lenght equal to reconstructed momentum value (cern root TVector class is useful here)
+   reconstructed total energy E: E^2 = mom^2 + mass^2
+   reconstructed 4-monetum: 4-vector or in root TLorentzVector( reconstructed momentum vector, reconstructed total energy )
+   (Actually you don't need to calculate total energy if you use method SetXYZM from https://root.cern.ch/doc/master/classTLorentzVector.html)
+
+9.1. Calculate reconstructed neutrino 4-momentum as a sum of mu- and pi+ reconstucted  4-momenta for subsample a) or a sum of mu-, pi+ and proton reconstucted 4-momenta for subsample b). Reconstructed neutrino energy would be E() of this 4-momentum
+
+9.2. Draw (separately for subsample a and b) 2D plot: nu_trueE vs reconstructed neutrino energy
+   In ideal case this plot should be diagonal. Is it like that?
+   Draw this plot only for true signal events (topology==1)
+   Is it better now?
+   Draw this plot only for background (topology!=1)
+   How it looks like now? Why?
+
+9.3 Draw (separately for subsample a and b) transverse momentum Pt() of the reconstructed neutrino 4-momentum for different reactions and topologies.
+  In ideal case it should be zero (neutrino beam is along Z-axis). Is it like that?
+   Draw this plot only for true signal events (topology==1)
+   Is it better now?
+   Draw this plot only for background (topology!=1)
+   How it looks like now? Why?
+
